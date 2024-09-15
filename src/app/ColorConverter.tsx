@@ -2,15 +2,15 @@
 import { useEffect, useState } from "react";
 import InputField from "./components/InputField";
 import { useSearchParams } from "next/navigation";
-import { ColorFormat } from "chroma.ts";
 import { convertColorToAllFormats } from "./conversion/colorConversion";
+import { ColorFormat } from "./page";
 
 export default function Home() {
   const searchParams = useSearchParams();
 
-  const [color, setColor] = useState(searchParams.get("color") || "#000000");
+  const [color, setColor] = useState(searchParams?.get("color") || "#000000");
   const [colorFormat, setColorFormat] = useState<ColorFormat>(
-    searchParams.get("format") as ColorFormat || "hex"
+    searchParams?.get("format") as ColorFormat || "hex"
   );
 
   const [colorFormats, setColorFormats] = useState(

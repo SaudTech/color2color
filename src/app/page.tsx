@@ -20,13 +20,13 @@ export type ColorFormat =
 export default function Home() {
   const searchParams = useSearchParams();
 
-  const [color, setColor] = useState(searchParams.get("color") || "#000000");
+  const [color, setColor] = useState(searchParams?.get("color") || "#000000");
 
   const [colorFormats, setColorFormats] = useState(
     convertColorToAllFormats(color)
   );
   const [colorFormat, setColorFormat] = useState<ColorFormat>(
-    (searchParams.get("format") as ColorFormat) || "hex"
+    (searchParams?.get("format") as ColorFormat) || "hex"
   );
 
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
