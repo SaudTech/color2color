@@ -1,11 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import InputField from "./components/InputField";
 import { useSearchParams } from "next/navigation";
 import { convertColorToAllFormats } from "./conversion/colorConversion";
 import Head from "next/head";
-import { CardSpotlight } from "./components/ui/card-spotlight";
-import { cn } from "./lib/utils";
+import ColorFormatGrid from "./components/ColorFormatGrid";
 
 export type ColorFormat =
   | "hex"
@@ -19,175 +18,174 @@ export type ColorFormat =
 
 export default function Home() {
   const searchParams = useSearchParams();
-
-  const [color, setColor] = useState(searchParams?.get("color") || "#000000");
-
+  const [color, setColor] = useState(searchParams?.get("color") || "#4A90E2");
+  const [inputValue, setInputValue] = useState(color);
   const [colorFormats, setColorFormats] = useState(
     convertColorToAllFormats(color)
   );
   const [colorFormat, setColorFormat] = useState<ColorFormat>(
-    (searchParams?.get("format") as ColorFormat) || "hex"
+    (searchParams?.get("from") as ColorFormat) || "hex"
+  );
+  const [toFormat, setToFormat] = useState<ColorFormat>(
+    (searchParams?.get("to") as ColorFormat) || "rgb"
   );
 
-  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
-
-  const updateColorAndFormat = (newColor: string, newFormat?: ColorFormat) => {
-    setColor(newColor);
-    if (newFormat) {
-      setColorFormat(newFormat);
-    }
-
-    try {
-      const allFormats = convertColorToAllFormats(newColor);
-      setColorFormats(allFormats);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleColorInputChange = (newColor: string) => {
-    updateColorAndFormat(newColor);
-  };
-
-  const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newFormat = e.target.value;
-    setColorFormat(newFormat as ColorFormat);
-
-    try {
-      const allFormats = convertColorToAllFormats(color);
-      setColorFormats(allFormats);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   useEffect(() => {
-    const params = new URLSearchParams(searchParams as any);
-    params.set("color", color);
-    params.set("format", colorFormat);
+    setColorFormats(convertColorToAllFormats(color));
+  }, [color]);
 
-    const newUrl = window.location.pathname + "?" + params.toString();
-    window.history.replaceState(null, "", newUrl);
-  }, [color, colorFormat]);
-
-  const handleCopy = (format: string, value: string) => {
-    navigator.clipboard
-      .writeText(value)
-      .then(() => {
-        setCopiedFormat(format);
-        setTimeout(() => {
-          setCopiedFormat(null);
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-      });
+  const updateColorAndFormat = (newColor: string) => {
+    setColor(newColor);
+    setInputValue(newColor);
   };
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+
+    try {
+      const converted = convertColorToAllFormats(value);
+      setColor(converted[colorFormat]);
+    } catch (error) {
+    }
+  };
+
+  const getPageTitle = () =>
+    `Color Converter: ${colorFormat.toUpperCase()} to All Formats | Color2Color`;
+  const getPageDescription = () =>
+    `Convert ${colorFormat.toUpperCase()} colors to HEX, RGB, RGBA, HSL, HSV, HSI, CMYK, and LAB formats instantly. Free online color converter tool for designers and developers.`;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-900">
       <Head>
-        <title>
-          Color Converter - Convert Colors Between HEX, RGB, HSL, and More
-        </title>
-        <meta
-          name="description"
-          content="Easily convert colors between different formats like HEX, RGB, HSL, and more with our Color Converter tool."
-        />
+        <title>{getPageTitle()}</title>
+        <meta name="description" content={getPageDescription()} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* Additional meta tags */}
+        <link rel="canonical" href="https://yourwebsite.com/color-converter" />
+        <meta name="robots" content="index, follow" />
+        {/* Open Graph and Twitter Card meta tags */}
       </Head>
-      {/* Navigation Bar */}
 
-      <nav className="bg-bg-light dark:bg-bg-dark text-text-light dark:text-text-dark text-center shadow"></nav>
-
-      {/* Main Content */}
-      <main className="flex-grow flex flex-col items-center text-center p-8 bg-gray-50 dark:bg-bg-dark text-text-dark dark:text-gray-100">
-        <div className="mb-8">
-          <a href="/">
-            <h1 className="text-4xl font-semibold mb-2">Color2Color</h1>
+      <nav className="bg-white dark:bg-gray-800 shadow-md">
+        <div className="container mx-auto px-6 py-3">
+          <a
+            href="/"
+            className="text-2xl font-bold text-indigo-600 dark:text-indigo-400"
+          >
+            Color2Color
           </a>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-            Easily convert colors between different formats like HEX, RGB, HSL,
-            and more. Simply pick a color or enter a color code to see its
-            equivalent in various formats.
-          </p>
         </div>
-        <div className="flex flex-col items-center gap-6 mb-12">
-          <input
-            type="color"
-            value={colorFormats.hex}
-            onChange={(e) => handleColorInputChange(e.target.value)}
-            className="w-24 h-24 cursor-pointer border-4 border-gray-300 dark:border-gray-700 rounded-full shadow-lg"
-          />
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <InputField
-              label={colorFormat.toUpperCase()}
-              value={colorFormats[colorFormat]}
-              format={colorFormat}
-              onChange={handleColorInputChange}
+      </nav>
+
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4 text-center">
+          Color Converter
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto text-center mb-12">
+          Transform colors between HEX, RGB, RGBA, HSL, HSV, HSI, CMYK, and LAB
+          formats instantly.
+        </p>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 mb-12">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+            <input
+              type="color"
+              value={colorFormats.hex}
+              onChange={(e) => updateColorAndFormat(e.target.value)}
+              className="w-full md:w-1/3 h-64 cursor-pointer border-4 border-gray-300 dark:border-gray-600 rounded-lg shadow-inner"
             />
-            <div className="flex flex-col items-start">
-              <label className="block text-lg mr-2">Format:</label>
-              <select
-                value={colorFormat}
-                onChange={handleFormatChange}
-                className="p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-              >
-                <option value="hex">HEX</option>
-                <option value="rgb">RGB</option>
-                <option value="rgba">RGBA</option>
-                <option value="hsl">HSL</option>
-                <option value="hsv">HSV</option>
-                <option value="hsi">HSI</option>
-                <option value="cmyk">CMYK</option>
-                <option value="lab">LAB</option>
-              </select>
+            <div className="w-full md:w-2/3 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4 dark:text-text-dark text-text-light">
+                <InputField
+                  label={`${colorFormat.toUpperCase()} Color`}
+                  value={inputValue}
+                  format={colorFormat}
+                  onChange={handleInputChange}
+                />
+                <div>
+                  <label className="block text-lg mb-2 text-gray-700 dark:text-gray-300">
+                    Format:
+                  </label>
+                  <select
+                    value={colorFormat}
+                    onChange={(e) => {
+                      setColorFormat(e.target.value as ColorFormat);
+                      setInputValue(
+                        colorFormats[e.target.value as ColorFormat]
+                      );
+                    }}
+                    className="p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                  >
+                    {[
+                      "hex",
+                      "rgb",
+                      "rgba",
+                      "hsl",
+                      "hsv",
+                      "hsi",
+                      "cmyk",
+                      "lab",
+                    ].map((format) => (
+                      <option key={format} value={format}>
+                        {format.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <ColorFormatGrid
+                colorFormats={colorFormats}
+                highlight={toFormat.toUpperCase()}
+              />
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(colorFormats).map(([format, value]) => (
-            <CardSpotlight
-              key={format}
-              className={`relative bg-white dark:bg-gray-800 shadow-md rounded p-6 cursor-pointer border border-gray-200 dark:border-gray-700 hover:shadow-lg transform hover:-translate-y-1 transition-all max-w-[300px] min-w-[300px]  duration-200 ${
-                copiedFormat === format ? "border-green-500" : ""
-              }`}
-              onClick={() => handleCopy(format, value)}
-            >
-              <div className="text-neutral-200 mt-4 relative z-20">
-                <h3 className="text-2xl font-semibold mb-2 uppercase">
-                  {format}
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 break-all">
-                  {value}
-                </p>
-                {copiedFormat === format && (
-                  <span className="absolute top-2 right-2 text-sm text-green-600">
-                    Copied!
-                  </span>
-                )}
-              </div>
-            </CardSpotlight>
-          ))}
+
+        {/* How to Use and Why Use sections */}
+        <div className="grid md:grid-cols-2 gap-12">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
+              How to Use Our Color Converter
+            </h2>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+              <li>Choose your input color format from the dropdown menu.</li>
+              <li>
+                Enter your color value in the input field or use the color
+                picker.
+              </li>
+              <li>
+                Instantly see the converted color values in all available
+                formats.
+              </li>
+              <li>Click on any format to copy the value to your clipboard.</li>
+            </ol>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">
+              Why Use Color2Color Converter?
+            </h2>
+            <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+              <li>Support for 8 different color models</li>
+              <li>Real-time conversions with instant updates</li>
+              <li>User-friendly interface with visual color picker</li>
+              <li>Accurate conversions for web and print projects</li>
+              <li>Free to use with no registration required</li>
+            </ul>
+          </div>{" "}
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 py-4">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm">
-            Built by{" "}
-            <a
-              href="https://saudzubedi.com"
-              className="font-semibold hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Saud
-            </a>
-          </p>
-        </div>
+      <footer className="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-6 text-center">
+        <p>
+          Built with ❤️ by{" "}
+          <a
+            href="https://saudzubedi.com"
+            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Saud
+          </a>
+        </p>
       </footer>
     </div>
   );

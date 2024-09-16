@@ -56,7 +56,7 @@ export default function Home() {
 
     const newUrl = window.location.pathname + "?" + params.toString();
     window.history.replaceState(null, "", newUrl);
-  }, [color, colorFormat]);
+  }, [color, colorFormat, searchParams]);
 
   const handleCopy = (format: string, value: string) => {
     navigator.clipboard

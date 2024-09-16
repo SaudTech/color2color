@@ -46,40 +46,62 @@ function parseColorString(colorStr: string): chroma.Color {
   }
 }
 
-export function convertColorToAllFormats(colorStr: string) {
+let previousValidConversion = {};
+
+export function convertColorToAllFormats(
+  colorStr: string
+): Record<string, string> {
   const sanitizedColorStr = sanitizeColorString(colorStr);
   let color: chroma.Color;
 
   try {
+    // Attempt to parse the sanitized color string
     color = parseColorString(sanitizedColorStr);
+
+    // If parsing is successful, perform the conversions
+    const rgb = color.rgb().map(Math.round);
+    const rgba = [...rgb, color.alpha()];
+    const hex = color.hex().toUpperCase(); // Returns uppercase hex
+
+    const hsl = color.hsl();
+    const hsv = color.hsv();
+    const hsi = color.hsi();
+    const cmyk = color.cmyk();
+    const lab = color.lab();
+
+    const conversion: Record<string, string> = {
+      hex: hex,
+      rgb: `rgb(${rgb.join(", ")})`,
+      rgba: `rgba(${rgb.join(", ")}, ${formatDecimal(rgba[3])})`,
+      hsl: `hsl(${formatHue(hsl[0])}, ${formatPercentage(
+        hsl[1]
+      )}, ${formatPercentage(hsl[2])})`,
+      hsv: `hsv(${formatHue(hsv[0])}, ${formatPercentage(
+        hsv[1]
+      )}, ${formatPercentage(hsv[2])})`,
+      hsi: `hsi(${formatHue(hsi[0])}, ${formatPercentage(
+        hsi[1]
+      )}, ${formatPercentage(hsi[2])})`,
+      cmyk: `cmyk(${cmyk.map(formatPercentage).join(", ")})`,
+      lab: `lab(${lab.map(formatLabValue).join(", ")})`,
+    };
+
+    // Store the successful conversion in the map
+    previousValidConversion = conversion;
+    console.log(`Conversion for "${colorStr}" successful.`);
+    // log previousValidConversion
+
+    return conversion;
   } catch (error) {
-    throw new Error("Invalid color format");
+    // If parsing fails, attempt to retrieve the previous valid conversion
+    const previous = previousValidConversion;
+    if (previous) {
+      return previous;
+    }
+
+    // If no previous conversion exists, rethrow the error or handle accordingly
+    throw new Error(
+      "Invalid color format and no previous valid conversion available."
+    );
   }
-
-  const rgb = color.rgb().map(Math.round);
-  const rgba = [...rgb, color.alpha()];
-  const hex = color.hex().toUpperCase(); // Returns uppercase hex
-
-  const hsl = color.hsl();
-  const hsv = color.hsv();
-  const hsi = color.hsi();
-  const cmyk = color.cmyk();
-  const lab = color.lab();
-
-  return {
-    hex: hex,
-    rgb: `rgb(${rgb.join(", ")})`,
-    rgba: `rgba(${rgb.join(", ")}, ${formatDecimal(rgba[3])})`,
-    hsl: `hsl(${formatHue(hsl[0])}, ${formatPercentage(
-      hsl[1]
-    )}, ${formatPercentage(hsl[2])})`,
-    hsv: `hsv(${formatHue(hsv[0])}, ${formatPercentage(
-      hsv[1]
-    )}, ${formatPercentage(hsv[2])})`,
-    hsi: `hsi(${formatHue(hsi[0])}, ${formatPercentage(
-      hsi[1]
-    )}, ${formatPercentage(hsi[2])})`,
-    cmyk: `cmyk(${cmyk.map(formatPercentage).join(", ")})`,
-    lab: `lab(${lab.map(formatLabValue).join(", ")})`,
-  };
 }
